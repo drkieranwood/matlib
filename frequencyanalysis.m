@@ -150,35 +150,36 @@ if filter_on
     %Create a 9th order LOW pass digital filter.
     %Since the cut-off was specified relative to the Nyquist it has already
     %been discretised appropreately.
-    [btemp,atemp] = butter(9,filtCut,'low');
+    [btemp,atemp] = butter(5,filtCut,'low');
     
     %Apply the filter using a zero phase system (filters both forwards and
     %backwards)
     dataVec = filtfilt(btemp,atemp,dataVec);    
 end
 
-
-%If no high pass frequency specified then use 0.01Hz
+%Check if a high pass filter has been specified
 if nargin < 4
-    filtHigh = 0.01*(sampleRate/2);
+    filtHigh = 1.0;
+    filter_on = 0;
 end
 %Check the filter rate is valid (>0).
 if(filtHigh <= 0)
     error('FREQANA:err','Filter rate must be positive (high-pass).');
 end
 
+if filter_on
+    %Create a 9th order HIGH pass digital filter.
+    %Since the cut-off was specified relative to the Nyquist it has already
+    %been discretised appropreately.
 
-%Create a 9th order HIGH pass digital filter.
-%Since the cut-off was specified relative to the Nyquist it has already
-%been discretised appropreately.
+    %Find normalised cut-off frequency (0:Nyquist)->(0:1)
+    filtCut = filtHigh / (sampleRate/2);
+    [btemp,atemp] = butter(5,filtCut,'high');
 
-%Find normalised cut-off frequency (0:Nyquist)->(0:1)
-filtCut = filtHigh / (sampleRate/2);
-[btemp,atemp] = butter(9,filtCut,'high');
-
-%Apply the filter using a zero phase system (filters both forwards and
-%backwards)
-dataVec = filtfilt(btemp,atemp,dataVec);   
+    %Apply the filter using a zero phase system (filters both forwards and
+    %backwards)
+    dataVec = filtfilt(btemp,atemp,dataVec);   
+end
 
 
 %============================
