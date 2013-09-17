@@ -40,7 +40,7 @@ function [ peakFrequency ] = frequencyanalysis( inputVector , sampleRate, filter
 
 % A sample data vector
 % sampleRate = 1000; t = linspace(0,1,1000); inputVector = cos(2*pi*100*t) + randn(size(t)) + 5*sin(2*pi*175*t);
-% endt = 50; sampleRate = 100; t = linspace(0,endt,endt*sampleRate); t(:) = t(:) + 0.0001*randn(length(t),1); inputVector = cos(2*pi*100*t)+randn(size(t)) + 5*sin(2*pi*175*t) + 0.1*t;
+% endt = 1; sampleRate = 1000; t = linspace(0,endt,endt*sampleRate); t(:) = t(:) + 0.0001*randn(length(t),1); inputVector = 2*cos(2*pi*100*t)+randn(size(t)) + 5*sin(2*pi*175*t) + 0.1*t;
 
 %============================
 %Check the input arguments
@@ -231,7 +231,8 @@ end
 plot(0:1/sampleRate:(N-1)/sampleRate,dataVec,'-b');
 title('Input (time-domain) data');
 xlabel('Time (s)'); ylabel('Value');
-legend('Original', 'Filtered');
+% legend({'Original'  'Filtered'},'interpreter','latex');
+legend('Original' , 'Filtered');
 
 % subplot(3,1,2);
 % plot(freq,10*log10(psdx)); grid on;
