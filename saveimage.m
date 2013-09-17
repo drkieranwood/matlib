@@ -23,11 +23,27 @@ function [ filename ] = saveimage( fh , name , XX, YY, overwrite, pdfon)
 %   Below 150px the axes and plots might not render correctly, above 9100px
 %   and the MATLAB save command returns an error.
 
-%Select the specified figure
+%Select the specified figure to be in focus.
 figure(fh);
 
-%Convert axes to use nice Latex markings
-plotTickLatex2D;
+%Convert axes to use nice Latex markings. If subplots are detected then
+%loop through them all.
+axesHandles = findall(fh,'type','axes');
+disp(axesHandles)
+if (length(axesHandles) > 1)
+    for ax = [axesHandles']
+      subplot(ax);
+%       plotTickLatex2D
+      set(ax,'FontName','Times New Roman');
+    end
+else 
+    axes(axesHandles);
+%     plotTickLatex2D
+    set(axesHandles,'FontName','Times New Roman');
+end
+
+%Make legends and other text into latex
+set(findall(fh,'type','text'),'interpreter','latex');
 
 %If the image size is not specified then use 1000x1000px
 if nargin < 3
@@ -47,16 +63,6 @@ end
 if nargin < 6
     pdfon = 0;
 end
-
-%Remove the white space matlab puts around its axes. Get the axes bounding
-%box and then use the location to adjust the position
-tightInset = get(fh,'TightInset');
-pos(1) = tightInset(1);
-pos(2) = tightInset(2);
-pos(3) = 1 - tightInset(1) - tightInset(3);
-position(4) = 1 - tightInset(2) - tightInset(4);
-set(gca, 'Position', position);
-saveas(h, 'WithoutMargins.pdf');
 
 %300dpi is the default resoloution and is good enough for most
 %purposes. The dpi will not affect the number of pixels in the final image but
