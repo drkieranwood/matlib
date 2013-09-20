@@ -220,8 +220,8 @@ freq2 = [-sampleRate/2:sampleRate/(N-1):sampleRate/2];
 %============================
 
 %Plot the original data and magnitude
-h1 = figure('name','Periodogram (PSD)');
-subplot(2,1,1);
+h1 = figure('name','Frequency Content');
+ax1 = subplot(2,1,1);
 hold on;
 if (timeVec_on == 1)
     plot(inputVector(:,1),inputVector(:,2),'-r');
@@ -239,10 +239,10 @@ legend('Original' , 'Filtered');
 % title('Periodogram (PSD) Using FFT');
 % xlabel('Frequency (Hz)'); ylabel('Power/Frequency (dB/Hz)');
 
-subplot(2,1,2);
+ax2 = subplot(2,1,2);
 plot(freq2,xdftmag); grid on;
-title('Magnitude Using FFT');
-xlabel('Frequency (Hz)'); ylabel('Magnitude');
+title('Magnitude Using FFT  ($|x(\omega j)|$)');
+xlabel('Frequency (Hz)'); ylabel('Magnitude ($|x(\omega j)|$)');
 xlim([0 sampleRate/2]);
 %note only plotting the first half since the rest is a reflection
 
@@ -255,7 +255,7 @@ xdftmag(1:round(N/2)) = 0;
 [~, ii] = max(xdftmag);
 peakFrequency = freq2(ii);
 figure(h1);
-subplot(2,1,2); hold on;
+axes(ax2); hold on;
 plot(freq2(ii),xdftmag(ii),'or');
 
 end
