@@ -29,40 +29,20 @@ function [ filename ] = saveimage( fh , name , XX, YY, overwrite, pdfon)
 
 %Example figures
 %Single plot
-% figure;plot(peaks);xlabel('Something');ylabel('sonething else');legend('1','2');
+% figure;plot(peaks);xlabel('Something$(x^{2})$');ylabel('sonething else$(log^{2}_{10})$');legend('1$(\theta^{2})$','2');
 
 %Double plot
-% figure;subplot(2,1,1);plot(peaks);xlabel('Something');ylabel('sonething else');legend('1','2');subplot(2,1,2);plot(peaks);xlabel('Something');ylabel('sonething else');
+% figure;subplot(2,1,1);plot(peaks);xlabel('Something$(x^{2})$');ylabel('sonething else$(log^{2}_{10})$');legend('1$(\theta^{2})$','2');subplot(2,1,2);plot(peaks);xlabel('Something$(x^{2})$');ylabel('sonething else$(log^{2}_{10})$');
+
+%Triple plot
+% figure;subplot(3,1,1);plot(peaks);xlabel('$(x^{2})$');ylabel('$(log^{2}_{10})$');legend('1$(\theta^{2})$','2');subplot(3,1,2);plot(peaks);xlabel('$(x^{2})$');ylabel('$(log^{2}_{10})$');subplot(3,1,3);plot(peaks);xlabel('$(x^{2})$');ylabel('$(log^{2}_{10})$');
 
 %Quad plot
+% figure;subplot(2,2,1);plot(peaks);xlabel('Something$(x^{2})$');ylabel('sonething else$(log^{2}_{10})$');legend('1','2');subplot(2,2,2);plot(peaks);xlabel('Something$(x^{2})$');ylabel('sonething else$(log^{2}_{10})$');legend('1$(\theta^{2})$','2');subplot(2,2,3);plot(peaks);xlabel('Something$(x^{2})$');ylabel('sonething else$(log^{2}_{10})$');subplot(2,2,4);plot(peaks);xlabel('Something$(x^{2})$');ylabel('sonething else$(log^{2}_{10})$');
 
 %Select the specified figure to be in focus.
 figure(fh);
-plot_on = 1;
-
-
-%===================
-%Convert fonts
-%===================
-
-%Convert axes to use nice Latex markings. If subplots are detected then
-%loop through them all.
-axesHandles = findall(fh,'type','axes');
-disp(axesHandles);
-if (length(axesHandles) > 1)
-    for ax = axesHandles(1:end)'
-      subplot(ax);
-%       set(gca,'FontName','cmr10');
-      set(ax,'FontName','Times New Roman','FontSize',10);
-    end
-else 
-    axes(axesHandles);
-%     set(gca,'FontName','cmr10');
-    set(axesHandles,'FontName','Times New Roman','FontSize',10);
-end
-
-%Make legends and other text into latex
-set(findall(fh,'type','text'),'interpreter','latex');
+plot_on = 0;
 
 
 %===================
@@ -101,18 +81,12 @@ else
 end
 
 
+
+
 %===================
 %Remove white space (work in progress)
 %===================
-if 1
-    %Set the figure to have the same proportions as the final image.
-    %i.e a latex document opened with 100% zoom and size 10 font would have
-    %the corrected 'displayed' width, and font sizes.
-    set(fh,'units','inches');
-    dpi=300;
-    set(fh,'Position',[1 1 XX/dpi YY/dpi]);
-
-
+if 1    
     %If to include an extra set of points at 0 and 1
     defaultMin = 0.5;
     defaultMax = 0.5;
@@ -146,6 +120,7 @@ if 1
         pos=get(childs(ii),'Position');         %The tight wrap around the axes (i.e the actual plot area)
         inset=get(childs(ii),'TightInset');     %The margins added for including the axes labels and ticks
         outer=get(childs(ii),'OuterPosition');  %What matlab thinks is the bounding figure window
+        set(childs(ii),'ActivePositionProperty','position');
      
         wrapBounds(ii,:)=[pos(1)-inset(1) pos(2)-inset(2) pos(1)+pos(3)+inset(3) pos(2)+pos(4)+inset(4)];
         figBounds(ii,:) =[outer(1) outer(2) outer(1)+outer(3) outer(2)+outer(4)];
@@ -193,13 +168,31 @@ if 1
     figmin=[min(figBounds(:,1)) min(figBounds(:,2))];   %[left  bottom]
     figmax=[max(figBounds(:,3)) max(figBounds(:,4))];   %[right top   ]
 
+    %The figure limits should always be (0:1)
+    figmin(1) = 0;
+    figmin(2) = 0;
+    figmax(1) = 1;
+    figmax(2) = 1;
+
     if plot_on
         figure(h1);
         plot([wrapmin(1) wrapmax(1)],[wrapmin(2) wrapmax(2)],'-*k');
         plot([figmin(1)  figmax(1)] ,[figmin(2)  figmax(2)] ,'-^k');
     end
-    %The figure window is expressed in the range 0:1 when using normalized
-    %untis. Hence the off-set proportaions can be calculated now.
+
+    if plot_on
+        %Add some axes to show these position on the real plot.
+        figure(fh);
+        axes('position',[figmin(1) figmin(2) figmax(1)-figmin(1) figmax(2)-figmin(2)],'nextplot','add','color',[0.0 0.8 0.0], 'YTick', [],'XTick', []);
+        axes('position',[wrapmin(1) wrapmin(2) wrapmax(1)-wrapmin(1) wrapmax(2)-wrapmin(2)],'nextplot','add','color',[0.8 0.0 0.0], 'YTick', [],'XTick', []);
+        axes('position',[0 0 0.01 0.01],'nextplot','add','color',[0.0 0.0 0.8], 'YTick', [],'XTick', []);
+        axes('position',[0.99 0.99 0.01 0.01],'nextplot','add','color',[0.0 0.0 0.8], 'YTick', [],'XTick', []);
+
+        %Move original plots back to top layer
+        for ii=nchilds:-1:1
+            uistack(childs(ii), 'top');
+        end
+    end
 end
 
 
@@ -210,7 +203,6 @@ end
 %300dpi is the default resoloution and is good enough for most
 %purposes. The dpi will not affect the number of pixels in the final image but
 %may affect how the image is interpreted by other programs.
-
 
 %Create pages size. This is the position on the page. Does not change
 %screen appearance, only the output pdf.
@@ -230,17 +222,62 @@ temp_bottom = -(  (wrapmin(2)-figmin(2))*pagesize(2)  );
 temp_width  = pagesize(1) + pagesize(1)*( ( figmax(1)-wrapmax(1) )+( wrapmin(1)-figmin(1) ) );
 temp_height = pagesize(2) + pagesize(2)*( ( figmax(2)-wrapmax(2) )+( wrapmin(2)-figmin(2) ) );
 
-temp_left   = temp_left*0.9;
-temp_bottom = temp_bottom*0.9;
-temp_width  = temp_width*0.98;
-temp_height = temp_height*0.98;
-
 pagePosSize = [temp_left temp_bottom temp_width temp_height];
 
 set(fh,'PaperUnits','inches');
 set(fh,'PaperSize',pagesize);
 set(fh,'PaperPositionMode','manual');
 set(fh,'PaperPosition',pagePosSize);
+
+
+
+%===================
+%Convert fonts
+%===================
+%Convert axes to use nice Latex markings. If subplots are detected then
+%loop through them all.
+axesHandles = findall(fh,'type','axes');
+if (length(axesHandles) > 1)
+    for ax = axesHandles(1:end)'
+        subplot(ax);
+%         set(gca,'FontName','cmr10');
+        set(ax,'FontName','Times New Roman','FontSize',10);
+    end
+else 
+    axes(axesHandles);
+%     set(gca,'FontName','cmr10');
+    set(axesHandles,'FontName','Times New Roman','FontSize',10);
+end
+
+%Make axis labels into latex without changing their size of position. This
+%requires getting the position of the string and axes limits before the
+%font change, then changing the font, then re-setting the positions.
+haxes = findall(fh,'type','axes');
+for jj=1:1:length(haxes)
+    %Get pre-units and borders and position
+    tempunitsaxes = get(haxes(jj),'units');
+    set(haxes(jj),'units','inches');
+    temppos = get(haxes(jj),'position');
+    
+    h_axLabels = get(haxes(jj),{'XLabel' 'YLabel'});
+    for ii=1:1:length(h_axLabels);
+            %Change units to normalized and font to latex
+            set(h_axLabels{ii},'interpreter','latex','FontSize',10,'unit','normalized');
+    end
+
+    %Reset the position. Matlab seems to mess things up when changing the
+    %interpreter to Latex.
+    set(haxes(jj),'position',[temppos(1) temppos(2) temppos(3) temppos(4)]);
+    
+    %Reset original units
+    set(haxes(jj),'units',tempunitsaxes);
+end
+
+%Make legends latex
+ledgs = findobj(gcf,'Type','axes','Tag','legend');
+for ii=1:1:length(ledgs) 
+    set(ledgs(ii),'interpreter','latex','FontSize',10);
+end
 
 
 %===================
@@ -276,6 +313,8 @@ if pdfon
 else
     print(fh,'-dpng','-r300',filename);
 end
+
+open('test.pdf');
 
 end
 
