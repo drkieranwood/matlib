@@ -1,4 +1,4 @@
-function [ filename ] = saveimage( fh , name , XX, YY, overwrite, pdfon)
+function [ filename ] = saveimage(fh,name,XX,YY,overwrite,pdfon,nudgeup)
 %SAVEIMAGE Save a .PNG or .PDF image of the specified figure.
 %   This function saves a .PNG image of the specified figure. The size of
 %   the image in pixels is also specified as width and height. The pixel
@@ -19,6 +19,8 @@ function [ filename ] = saveimage( fh , name , XX, YY, overwrite, pdfon)
 %   filename  - the saved image filename
 %   overwrite - to ignore the overwite file warning
 %   pdfon     - if set to 1 then output in pdf
+%   nudgeup   - if the xlabel has a lot of latex that makes it spen two
+%   lines then some extra space is needed. This is the number of pixels.
 %
 %   Below 150px the axes and plots might not render correctly, above 9100px
 %   and the MATLAB save command returns an error.
@@ -69,6 +71,10 @@ if nargin < 6
     pdfon = 1;
 end
 
+%If the nudge up is not specified then do not
+if nargin < 7
+    nudgeup = 0;
+end
 
 %===================
 %Set the resoloution of the output
@@ -81,6 +87,13 @@ else
 end
 
 
+%===================
+%Resize screen position to be correct aspect
+%===================
+curPos = get(fh,'Position');
+%Leave the width and change the height
+newH = curPos(3)*(YY/XX);
+set(fh,'Position',[curPos(1) curPos(2) curPos(3) newH]);
 
 
 %===================
@@ -225,15 +238,16 @@ temp_height = pagesize(2) + pagesize(2)*( ( figmax(2)-wrapmax(2) )+( wrapmin(2)-
 pagePosSize = [temp_left temp_bottom temp_width temp_height];
 
 set(fh,'PaperUnits','inches');
-set(fh,'PaperSize',pagesize);
+set(fh,'PaperSize',pagesize+[0 nudgeup/dpi]);
 set(fh,'PaperPositionMode','manual');
-set(fh,'PaperPosition',pagePosSize);
+set(fh,'PaperPosition',pagePosSize+[0 nudgeup/dpi 0 0]);
 
 
 
 %===================
 %Convert fonts
 %===================
+fontSz = 9;
 %Convert axes to use nice Latex markings. If subplots are detected then
 %loop through them all.
 axesHandles = findall(fh,'type','axes');
@@ -241,12 +255,16 @@ if (length(axesHandles) > 1)
     for ax = axesHandles(1:end)'
         subplot(ax);
 %         set(gca,'FontName','cmr10');
-        set(ax,'FontName','Times New Roman','FontSize',10);
+        set(ax,'FontName','Times New Roman','FontSize',fontSz-1);
+%         set(ax,'FontName','CMU Serif','FontSize',fontSz);
+        grid on;
     end
 else 
     axes(axesHandles);
 %     set(gca,'FontName','cmr10');
-    set(axesHandles,'FontName','Times New Roman','FontSize',10);
+    set(axesHandles,'FontName','Times New Roman','FontSize',fontSz-1);
+%     set(axesHandles,'FontName','CMU Serif','FontSize',fontSz);
+    grid on;
 end
 
 %Make axis labels into latex without changing their size of position. This
@@ -262,7 +280,7 @@ for jj=1:1:length(haxes)
     h_axLabels = get(haxes(jj),{'XLabel' 'YLabel'});
     for ii=1:1:length(h_axLabels);
             %Change units to normalized and font to latex
-            set(h_axLabels{ii},'interpreter','latex','FontSize',10,'unit','normalized');
+            set(h_axLabels{ii},'interpreter','latex','FontSize',fontSz,'unit','normalized');
     end
 
     %Reset the position. Matlab seems to mess things up when changing the
@@ -273,15 +291,30 @@ for jj=1:1:length(haxes)
     set(haxes(jj),'units',tempunitsaxes);
 end
 
+htext = findall(fh,'type','text');
+for jj=1:1:length(htext)
+    set(h_axLabels{ii},'interpreter','latex','FontSize',fontSz,'unit','normalized');
+end
+
 %Make legends latex
 ledgs = findobj(gcf,'Type','axes','Tag','legend');
 for ii=1:1:length(ledgs) 
-    set(ledgs(ii),'interpreter','latex','FontSize',10);
+    set(ledgs(ii),'interpreter','latex','FontSize',fontSz);
 end
 
 
 %===================
-%Save the pdf or png
+%Make lines correct
+%===================
+%Set plot lines to be slightly thicker
+hline = findobj(fh, 'type', 'line');
+set(hline,'linewidth',1,'LineSmoothing','on');
+%Set axes grid lines thinner
+hline = findobj(fh, 'type', 'axis');
+set(hline,'linewidth',0.5);
+
+%===================
+%Save the pdf or pngcl
 %===================
 
 %Set the filename extension depending on if a png or pdf is required
@@ -314,7 +347,6 @@ else
     print(fh,'-dpng','-r300',filename);
 end
 
-open('test.pdf');
-
+% open(filename);
 end
 
