@@ -299,7 +299,10 @@ end
 %Make legends latex
 ledgs = findobj(gcf,'Type','axes','Tag','legend');
 for ii=1:1:length(ledgs) 
-    set(ledgs(ii),'interpreter','latex','FontSize',fontSz);
+    set(ledgs(ii),'interpreter','latex','FontSize',fontSz-1);
+    set(ledgs(ii),'PlotBoxAspectRatioMode','manual','PlotBoxAspectRatio',[1.0 0.35 1.0]);
+    temppos = get(ledgs(ii),'position');
+    set(ledgs(ii),'position',[temppos(1) temppos(2) temppos(3)-0.03 temppos(4)]);
 end
 
 
@@ -308,10 +311,10 @@ end
 %===================
 %Set plot lines to be slightly thicker
 hline = findobj(fh, 'type', 'line');
-set(hline,'linewidth',1,'LineSmoothing','on');
+set(hline,'linewidth',0.3,'LineSmoothing','on');
 %Set axes grid lines thinner
 hline = findobj(fh, 'type', 'axis');
-set(hline,'linewidth',0.5);
+set(hline,'linewidth',0.1);
 
 %===================
 %Save the pdf or pngcl
