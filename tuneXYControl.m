@@ -7,8 +7,9 @@ clear all;
 
 %First create a double integral system with the appropreate parameters
 delayHd = 0.0959+0.14;
-lagTc   = 8.2451;
-gainKc  = 4.4727;
+delayHd = 0.24;
+lagTc   = 7.8382;
+gainKc  = 6.7778;
 rateTs  = 0.1;   %10Hz
 doubeIntSystems = createdoubleint(delayHd,rateTs,lagTc,0,gainKc);
 
@@ -37,7 +38,7 @@ BBnoise(1:3) = sstemp.b;
 %=============================================
 %Noise standard distributions
 inputNoise = 0.1;
-measuNoise = sqrt(0.0039);
+measuNoise = sqrt(0.0055);
 QE = BBnoise*inputNoise*inputNoise*BBnoise';
 RE = measuNoise*measuNoise;
 
@@ -76,9 +77,13 @@ ssh2 = ss(h2AA,h2BB,h2CC,h2DD,rateTs);
 %=============================================
 closedLoop1 = feedback(series(reg1,1.2*ssnew),-1);
 closedLoop2 = feedback(series(reg2,1.2*ssnew),-1);
-figure;step(closedLoop1,'-sr');hold on;step(closedLoop2,'-og');
-legend('LQG','H2');
 
 
-reg1
+figure;step(closedLoop1,'-k');
+hold on;
+
+% step(closedLoop2,'-og');
+% legend('LQG','H2');
+
+
 
