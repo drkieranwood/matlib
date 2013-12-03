@@ -8,12 +8,12 @@ close all;
 clear all;
 clc;
 
-biasState_on = 1;
+biasState_on = 0;
 simDuration = 30;
 samplingTs = 0.1;
 delay = 0.05;
 lagTc = 8.1;
-bias = -1;
+bias = -0.1;
 
 dblIntSyss = createdoubleint(delay,samplingTs,lagTc,0,1);
 simSys = dblIntSyss.discSSLagDelay;
